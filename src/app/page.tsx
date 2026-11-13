@@ -1,5 +1,13 @@
+import { AccountsTable } from "@/components/AccountsTable";
+import { ActivityChart } from "@/components/ActivityChart";
+import { AppShell } from "@/components/AppShell";
+import { Feedback } from "@/components/Feedback";
 import { KpiCard } from "@/components/KpiCard";
+import { Select } from "@/components/Select";
+import { computeAccountSummaries } from "@/domain/account-summaries";
+import { computePeriodRanges } from "@/domain/dates";
 import { computeDashboardKpis } from "@/domain/kpi";
+import { computeDailyActivitySeries } from "@/domain/timeseries";
 import seed from "@/data/seed.json";
 import type { SeedData } from "@/domain/types";
 
@@ -19,61 +27,102 @@ function formatCsat(value: number | null): string {
 }
 
 export default function Home() {
-  // Période par défaut : 30 jours, tous segments. Les filtres interactifs
-  // (7/30/90j, segment, via l'URL — cf. ADR-001) arrivent en semaine 2.
-  const kpis = computeDashboardKpis(data, data.generatedThrough, 30, "all");
+  // Période par défaut : 30 jours, tous segments. Les boutons de période et
+  // le select de segment ci-dessous sont visuels pour l'instant : le
+  // branchement aux filtres d'URL (ADR-001) arrive semaine 2.
+  const period = 30;
+  const kpis = computeDashboardKpis(data, data.generatedThrough, period, "all");
+  const { current } = computePeriodRanges(data.generatedThrough, period);
+  const activitySeries = computeDailyActivitySeries(data, current);
+  const accountRows = computeAccountSummaries(data, current, "all");
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
-      <header className="border-b border-slate-200 bg-white px-6 py-4 dark:border-slate-800 dark:bg-slate-900">
-        <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-50">
-          ProductPulse
-        </h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400">
-          Vue d&apos;ensemble — 30 derniers jours, tous segments
-        </p>
-      </header>
+    <AppShell title="ProductPulse" subtitle="Vue d'ensemble — 30 derniers jours, tous segments">
+      <Feedback
+        tone="info"
+        message="Démonstrateur sur données synthétiques — aucune donnée client réelle."
+      />
 
-      <main className="mx-auto max-w-5xl px-6 py-8">
-        <section
-          aria-label="Indicateurs clés"
-          className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"
-        >
-          <KpiCard
-            label="Comptes actifs"
-            formattedValue={formatInteger(kpis.activeAccounts.current)}
-            current={kpis.activeAccounts.current}
-            previous={kpis.activeAccounts.previous}
-            deltaUnit="percent"
-          />
-          <KpiCard
-            label="Tickets créés"
-            formattedValue={formatInteger(kpis.ticketsCreated.current)}
-            current={kpis.ticketsCreated.current}
-            previous={kpis.ticketsCreated.previous}
-            deltaUnit="percent"
-          />
-          <KpiCard
-            label="Taux de résolution"
-            formattedValue={formatPercent(kpis.resolutionRate.current)}
-            current={kpis.resolutionRate.current}
-            previous={kpis.resolutionRate.previous}
-            deltaUnit="points"
-          />
-          <KpiCard
-            label="Satisfaction (CSAT)"
-            formattedValue={formatCsat(kpis.csat.current)}
-            current={kpis.csat.current}
-            previous={kpis.csat.previous}
-            deltaUnit="points"
-          />
-        </section>
-
-        <p className="mt-8 text-sm text-slate-400 dark:text-slate-600">
-          Filtres de période/segment, graphique et tableau triable : à venir
-          semaine 2 (cf. docs/adr/0001-gestion-etat-filtres.md).
+      <div className="mt-6 flex flex-wrap items-end gap-6">
+        <fieldset className="flex items-end gap-2" disabled>
+          <legend className="sr-only">Période</legend>
+          {[7, 30, 90].map((value) => (
+            <button
+              key={value}
+              type="button"
+              aria-pressed={value === period}
+              className="rounded-md border border-[var(--color-border)] px-3 py-1.5 text-sm aria-pressed:bg-[var(--color-series-1)] aria-pressed:text-white"
+            >
+              {value}j
+            </button>
+          ))}
+        </fieldset>
+        <Select
+          id="segment-filter"
+          label="Segment"
+          value="all"
+          disabled
+          options={[
+            { value: "all", label: "Tous" },
+            { value: "enterprise", label: "Enterprise" },
+            { value: "smb", label: "PME" },
+            { value: "startup", label: "Startup" },
+          ]}
+        />
+        <p className="text-xs text-[var(--color-text-muted)]">
+          Filtres interactifs : semaine 2
         </p>
-      </main>
-    </div>
+      </div>
+
+      <section aria-label="Indicateurs clés" className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <KpiCard
+          label="Comptes actifs"
+          formattedValue={formatInteger(kpis.activeAccounts.current)}
+          current={kpis.activeAccounts.current}
+          previous={kpis.activeAccounts.previous}
+          deltaUnit="percent"
+        />
+        <KpiCard
+          label="Tickets créés"
+          formattedValue={formatInteger(kpis.ticketsCreated.current)}
+          current={kpis.ticketsCreated.current}
+          previous={kpis.ticketsCreated.previous}
+          deltaUnit="percent"
+        />
+        <KpiCard
+          label="Taux de résolution"
+          formattedValue={formatPercent(kpis.resolutionRate.current)}
+          current={kpis.resolutionRate.current}
+          previous={kpis.resolutionRate.previous}
+          deltaUnit="points"
+        />
+        <KpiCard
+          label="Satisfaction (CSAT)"
+          formattedValue={formatCsat(kpis.csat.current)}
+          current={kpis.csat.current}
+          previous={kpis.csat.previous}
+          deltaUnit="points"
+        />
+      </section>
+
+      <section className="mt-8">
+        <h2 className="mb-2 text-sm font-semibold text-[var(--color-text-primary)]">
+          Évolution dans le temps
+        </h2>
+        <ActivityChart points={activitySeries} />
+      </section>
+
+      <section className="mt-8">
+        <h2 className="mb-2 text-sm font-semibold text-[var(--color-text-primary)]">
+          Comptes par segment
+        </h2>
+        <AccountsTable rows={accountRows} />
+      </section>
+
+      <p className="mt-8 text-sm text-[var(--color-text-muted)]">
+        Tri du tableau et filtres synchronisés : à venir semaine 2 (cf.
+        docs/adr/0001-gestion-etat-filtres.md).
+      </p>
+    </AppShell>
   );
 }
