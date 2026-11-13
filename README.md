@@ -1,36 +1,58 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ProductPulse
 
-## Getting Started
+Tableau de bord produit fictif (SaaS synthétique) permettant à un Product
+Manager de suivre l'évolution de l'activité — comptes actifs, tickets,
+satisfaction — filtrée par période et segment. Projet pédagogique, aucune
+donnée réelle.
 
-First, run the development server:
+## Démarrer
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Ouvrir [http://localhost:3000](http://localhost:3000). Les données
+affichées viennent de [src/data/seed.json](src/data/seed.json), un jeu
+synthétique déterministe (régénérable avec
+`node scripts/generate-seed.mjs`).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Vérifier le projet
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run lint   # 0 erreur, 0 warning
+npm test       # tests unitaires (Vitest)
+npm run build  # build de production
+```
 
-## Learn More
+Les hooks Git (Husky) exécutent `lint` + `test` avant chaque commit, et
+valident le message de commit (Conventional Commits) — voir
+[CONTRIBUTING.md](CONTRIBUTING.md).
 
-To learn more about Next.js, take a look at the following resources:
+## Structure
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+src/
+  domain/        calcul des KPIs, dates, séries temporelles — pur, sans React
+  components/    KpiCard, AppShell, Select, EmptyState, Feedback, ActivityChart, AccountsTable
+  data/          seed.json (généré par scripts/generate-seed.mjs)
+  app/           page Next.js (App Router)
+docs/
+  01-note-de-cadrage.md        besoin métier, personas, définitions des 4 KPIs
+  adr/0001-...                 décisions d'architecture (ADR)
+  02-decision-ssr-csr.md       choix de rendu
+  03-maquette-filaire.md       disposition de l'écran
+  04-design-system.md          tokens et composants
+  registre-ia.md               usages de l'IA, avec erreurs repérées et corrigées
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## État actuel
 
-## Deploy on Vercel
+- ✅ 4 KPIs calculés sur un jeu de données synthétique réel, avec comparaison à la période précédente.
+- ✅ Mini design system (5 composants), graphique d'évolution et tableau des comptes.
+- 🔜 Filtres période/segment interactifs, tri du tableau, synchronisation via l'URL (cf. [ADR-001](docs/adr/0001-gestion-etat-filtres.md)).
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Stack
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Next.js (App Router) + React + TypeScript, Tailwind CSS, Vitest +
+React Testing Library.
