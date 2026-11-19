@@ -33,8 +33,8 @@ valident le message de commit (Conventional Commits) — voir
 
 ```
 src/
-  domain/        calcul des KPIs, dates, séries temporelles — pur, sans React
-  components/    KpiCard, AppShell, Select, EmptyState, Feedback, ActivityChart, AccountsTable
+  domain/        calcul des KPIs, dates, séries temporelles, filtres — pur, sans React
+  components/    KpiCard, AppShell, Select, EmptyState, Feedback, ActivityChart, AccountsTable, FilterBar
   data/          seed.json (généré par scripts/generate-seed.mjs)
   app/           page Next.js (App Router)
 docs/
@@ -50,7 +50,8 @@ docs/
 
 - ✅ 4 KPIs calculés sur un jeu de données synthétique réel, avec comparaison à la période précédente.
 - ✅ Mini design system (5 composants), graphique d'évolution et tableau des comptes.
-- 🔜 Filtres période/segment interactifs, tri du tableau, synchronisation via l'URL (cf. [ADR-001](docs/adr/0001-gestion-etat-filtres.md)).
+- ✅ Filtres période/segment interactifs et synchronisés via l'URL, tableau triable au clic sur les en-têtes (cf. [ADR-001](docs/adr/0001-gestion-etat-filtres.md)).
+- 🔜 Export des données filtrées, formulaire de connexion (hors périmètre pédagogique actuel).
 
 ## Stack
 

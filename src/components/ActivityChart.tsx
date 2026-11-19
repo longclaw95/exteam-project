@@ -1,13 +1,13 @@
 /**
- * Graphique d'évolution des comptes actifs par segment.
+ * Graphique d'évolution des comptes actifs par segment. Reçoit déjà les
+ * points filtrés par période/segment (cf. app/page.tsx + ADR-001) : lui-même
+ * reste purement présentationnel.
  *
- * Version statique (pas d'interaction au survol) : les filtres et le
- * recalcul dynamique arrivent en semaine 2 avec le reste de l'UI
- * interactive (cf. docs/adr/0001-gestion-etat-filtres.md). Ajouter un
- * survol/tooltip maintenant serait de la "surenchère technique" sur un
- * graphique qui n'est pas encore branché aux filtres — cf. contrainte du
- * brief. Palette et repères visuels suivent le guide interne de dataviz
- * (3 couleurs catégorielles validées CVD, légende + libellés directs).
+ * Pas de survol/tooltip pour l'instant — cf. contrainte du brief "pas de
+ * surenchère technique" ; les 2 lignes/libellés directs suffisent à lire les
+ * valeurs sans interaction. Palette et repères visuels suivent le guide
+ * interne de dataviz (3 couleurs catégorielles validées CVD, légende +
+ * libellés directs).
  */
 
 import type { DailyActivityPoint } from "@/domain/timeseries";
