@@ -54,3 +54,58 @@ function trend(current: number, previous: number) {
 
 **Conclusion :** proposition initiale rejetée telle quelle, réécrite avec
 garde sur les cas limites et un libellé textuel pour l'accessibilité.
+
+## Semaine du 9 novembre 2026
+
+### Entrée 2 — Composant `Select` (mardi 10 novembre)
+
+**Objectif :** générer un `<select>` accessible réutilisable (segment,
+futurs filtres), avec label associé et gestion du changement de valeur.
+
+**Outil :** assistant IA (Copilot-like), prompt dans l'éditeur.
+
+**Prompt résumé :** « Écris un composant `Select` générique avec `label`,
+`options`, `value`, `onChange`, en Server Component Next.js puisqu'il n'a
+pas besoin d'état interne. »
+
+**Erreur repérée :** le composant généré définissait un gestionnaire
+`onChange` sans la directive `"use client"`. Accepté tel quel, il provoque
+une erreur de build Next.js dès qu'il est utilisé depuis une page Server
+Component : « Event handlers cannot be passed to Client Component props ».
+L'IA avait mal classé le composant côté serveur alors qu'il est
+intrinsèquement interactif.
+
+**Correction appliquée** (voir [Select.tsx](../src/components/Select.tsx)) :
+ajout de `"use client"` en tête de fichier, avec un commentaire reliant
+cette frontière à la décision SSR/CSR (ADR, `docs/02-decision-ssr-csr.md`) :
+la limite suit l'interactivité, pas l'emplacement dans l'arborescence.
+Vérifié par un `npm run build` qui échouait avant correction et passe
+après.
+
+**Conclusion :** proposition rejetée telle quelle (erreur de build
+reproductible), corrigée en une ligne après diagnostic de l'erreur.
+
+### Entrée 3 — Graphique `ActivityChart` (jeudi 12 novembre)
+
+**Objectif :** générer un graphique d'évolution de l'activité par segment
+(3 séries), accessible et lisible en clair/sombre.
+
+**Outil :** assistant IA (Copilot-like), prompt dans l'éditeur, guidé par
+une méthodologie interne de data-visualisation (choix de palette validé
+par script plutôt qu'à l'œil).
+
+**Prompt résumé :** « Écris un graphique SVG en lignes pour 3 segments,
+avec légende et libellés directs, sans dépendre uniquement de la couleur
+pour distinguer les séries. »
+
+**Résultat :** proposition acceptée après vérification, pas rejetée —
+mais seulement parce que la contrainte (palette catégorielle validée,
+3 couleurs, légende + libellés directs, jamais la couleur seule) avait été
+donnée explicitement dans le prompt. Preuve : `src/components/ActivityChart.tsx`
+utilise les tokens `--color-series-1/2/3` définis dans `src/app/globals.css`,
+accompagnés d'une légende textuelle et de libellés en bout de ligne.
+
+**Conclusion :** utile de constater qu'une IA bien contrainte en amont
+produit un résultat conforme du premier coup — à l'inverse de l'entrée 2,
+où l'absence de contrainte explicite sur la frontière serveur/client a
+produit une erreur.
