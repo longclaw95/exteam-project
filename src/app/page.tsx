@@ -1,11 +1,14 @@
+import { Suspense } from "react";
+
 import { AccountsTable } from "@/components/AccountsTable";
 import { ActivityChart } from "@/components/ActivityChart";
 import { AppShell } from "@/components/AppShell";
 import { Feedback } from "@/components/Feedback";
+import { FilterBar } from "@/components/FilterBar";
 import { KpiCard } from "@/components/KpiCard";
-import { Select } from "@/components/Select";
 import { computeAccountSummaries } from "@/domain/account-summaries";
 import { computePeriodRanges } from "@/domain/dates";
+import { parsePeriod, parseSegment } from "@/domain/filters";
 import { computeDashboardKpis } from "@/domain/kpi";
 import { computeDailyActivitySeries } from "@/domain/timeseries";
 import seed from "@/data/seed.json";
@@ -26,53 +29,33 @@ function formatCsat(value: number | null): string {
   return value === null ? "n/a" : `${value.toLocaleString("fr-FR")} / 5`;
 }
 
-export default function Home() {
-  // Période par défaut : 30 jours, tous segments. Les boutons de période et
-  // le select de segment ci-dessous sont visuels pour l'instant : le
-  // branchement aux filtres d'URL (ADR-001) arrive semaine 2.
-  const period = 30;
-  const kpis = computeDashboardKpis(data, data.generatedThrough, period, "all");
-  const { current } = computePeriodRanges(data.generatedThrough, period);
-  const activitySeries = computeDailyActivitySeries(data, current);
-  const accountRows = computeAccountSummaries(data, current, "all");
-
+export default function Home({ searchParams }: PageProps<"/">) {
   return (
-    <AppShell title="ProductPulse" subtitle="Vue d'ensemble — 30 derniers jours, tous segments">
+    <AppShell title="ProductPulse" subtitle="Filtrez par période et par segment ci-dessous">
       <Feedback
         tone="info"
         message="Démonstrateur sur données synthétiques — aucune donnée client réelle."
       />
+      <Suspense fallback={<p className="mt-6 text-sm text-[var(--color-text-muted)]">Chargement…</p>}>
+        <Dashboard searchParams={searchParams} />
+      </Suspense>
+    </AppShell>
+  );
+}
 
-      <div className="mt-6 flex flex-wrap items-end gap-6">
-        <fieldset className="flex items-end gap-2" disabled>
-          <legend className="sr-only">Période</legend>
-          {[7, 30, 90].map((value) => (
-            <button
-              key={value}
-              type="button"
-              aria-pressed={value === period}
-              className="rounded-md border border-[var(--color-border)] px-3 py-1.5 text-sm aria-pressed:bg-[var(--color-series-1)] aria-pressed:text-white"
-            >
-              {value}j
-            </button>
-          ))}
-        </fieldset>
-        <Select
-          id="segment-filter"
-          label="Segment"
-          value="all"
-          disabled
-          options={[
-            { value: "all", label: "Tous" },
-            { value: "enterprise", label: "Enterprise" },
-            { value: "smb", label: "PME" },
-            { value: "startup", label: "Startup" },
-          ]}
-        />
-        <p className="text-xs text-[var(--color-text-muted)]">
-          Filtres interactifs : semaine 2
-        </p>
-      </div>
+async function Dashboard({ searchParams }: Pick<PageProps<"/">, "searchParams">) {
+  const params = await searchParams;
+  const period = parsePeriod(params.period);
+  const segment = parseSegment(params.segment);
+
+  const kpis = computeDashboardKpis(data, data.generatedThrough, period, segment);
+  const { current } = computePeriodRanges(data.generatedThrough, period);
+  const activitySeries = computeDailyActivitySeries(data, current);
+  const accountRows = computeAccountSummaries(data, current, segment);
+
+  return (
+    <>
+      <FilterBar period={period} segment={segment} />
 
       <section aria-label="Indicateurs clés" className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <KpiCard
@@ -118,11 +101,6 @@ export default function Home() {
         </h2>
         <AccountsTable rows={accountRows} />
       </section>
-
-      <p className="mt-8 text-sm text-[var(--color-text-muted)]">
-        Tri du tableau et filtres synchronisés : à venir semaine 2 (cf.
-        docs/adr/0001-gestion-etat-filtres.md).
-      </p>
-    </AppShell>
+    </>
   );
 }
