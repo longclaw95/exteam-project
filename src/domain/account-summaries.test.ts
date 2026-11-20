@@ -6,7 +6,13 @@ import type { SeedData } from "./types";
 const RANGE = { start: "2026-11-01", end: "2026-11-07" };
 
 function makeData(overrides: Partial<SeedData> = {}): SeedData {
-  return { generatedThrough: "2026-11-07", accounts: [], tickets: [], ...overrides };
+  return {
+    generatedFrom: "2026-08-10",
+    generatedThrough: "2026-11-07",
+    accounts: [],
+    tickets: [],
+    ...overrides,
+  };
 }
 
 describe("computeAccountSummaries", () => {

@@ -1,4 +1,6 @@
-# Audit performance — semaine 3 (24 novembre 2026)
+# Audit performance — semaine 3
+
+**Réalisé le :** vendredi 20 novembre 2026 (créneau prévu au planning : mardi 24/11, travail avancé).
 
 Règle du brief appliquée strictement : **aucune amélioration non
 mesurée**. Les 3 budgets ci-dessous ont chacun un protocole reproductible
@@ -18,7 +20,7 @@ stat -c%s .next/<fichier>   # taille brute
 gzip -c .next/<fichier> | wc -c   # taille compressée
 ```
 
-**Mesuré (24/11/2026) :** 434,0 KiB brut / **128,9 KiB gzip**.
+**Mesuré (20/11/2026) :** 434,0 KiB brut / **128,9 KiB gzip**.
 
 **Limite retenue :** rester sous 200 KiB gzip pour ce socle partagé. Marge
 actuelle : ~71 KiB. Pas d'optimisation nécessaire à ce stade — le projet
@@ -37,7 +39,7 @@ soit mesurable de façon fiable à cette échelle.
 npx vitest run src/domain/account-summaries.perf.test.ts --reporter=verbose
 ```
 
-**Mesuré (24/11/2026), jeu ×40 :**
+**Mesuré (20/11/2026), jeu ×40 :**
 
 | Version | Médiane / 5 exécutions |
 |---|---|
@@ -66,7 +68,7 @@ test, en comptant les appels à `onRender` déclenchés par un clic de tri
 npx vitest run src/components/AccountsTable.test.tsx --reporter=verbose
 ```
 
-**Mesuré (24/11/2026) :** 1 clic de tri → **exactement 1 re-rendu** de
+**Mesuré (20/11/2026) :** 1 clic de tri → **exactement 1 re-rendu** de
 `AccountsTable` (test "un tri déclenche exactement un seul re-rendu").
 
 **Limite retenue :** un clic de tri ne doit jamais déclencher plus d'un

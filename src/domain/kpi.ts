@@ -93,12 +93,19 @@ export function computeCsat(
 
 export interface KpiComparison<T> {
   current: T;
-  previous: T;
+  /** `null` si la période précédente n'est pas entièrement couverte par les données. */
+  previous: T | null;
 }
 
 /**
  * Calcule une valeur sur la période courante et sur la période précédente
  * de même durée, pour permettre l'affichage "vs période précédente".
+ *
+ * Une période précédente qui commence avant `data.generatedFrom` n'est pas
+ * comparable : avant cette date l'activité est inconnue, pas nulle. La
+ * compter comme 0 produirait une fausse tendance ("Nouveau par rapport à
+ * zéro"). La période courante (90 jours max) est toujours couverte, le jeu
+ * de données couvrant 90 jours.
  */
 export function compareWithPreviousPeriod<T>(
   data: SeedData,
@@ -110,7 +117,7 @@ export function compareWithPreviousPeriod<T>(
   const { current, previous } = computePeriodRanges(referenceDate, period);
   return {
     current: compute(data, current, segment),
-    previous: compute(data, previous, segment),
+    previous: previous.start >= data.generatedFrom ? compute(data, previous, segment) : null,
   };
 }
 

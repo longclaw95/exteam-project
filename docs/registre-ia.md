@@ -110,9 +110,9 @@ produit un résultat conforme du premier coup — à l'inverse de l'entrée 2,
 où l'absence de contrainte explicite sur la frontière serveur/client a
 produit une erreur.
 
-## Semaine du 23 novembre 2026
+## Semaine 3 (travail avancé, réalisé le 20 novembre 2026)
 
-### Entrée 4 — Revue critique d'un refactoring IA (mercredi 25 novembre)
+### Entrée 4 — Revue critique d'un refactoring IA (20 novembre ; créneau prévu mercredi 25/11)
 
 **Objectif :** demander un refactoring de performance sur `AccountsTable`
 (le tri du tableau) et évaluer la proposition de façon critique plutôt que
@@ -156,3 +156,31 @@ proposition « techniquement séduisante mais inutile » à savoir refuser.
 **Conclusion :** une suggestion de l'IA peut être syntaxiquement correcte
 et pourtant inutile dans le contexte réel du composant ; seule la mesure
 (pas l'intuition) permet de trancher.
+
+## Audit pré-semaine 4 (20 novembre 2026)
+
+### Entrée 5 — Un correctif IA validé en semaine 1 cachait un second bug
+
+**Contexte :** la version corrigée de `computeTrend` (entrée 1) avait été
+acceptée avec un test de variation en points : `computeTrend(80, 75)` →
+« Hausse de 5 points ». Test vert, correctif considéré comme sûr.
+
+**Erreur découverte :** sur les vraies données, la CSAT passe de 3,8 à 4,1
+et la carte affiche « Hausse de **0.2999999999999998** points » — dès la vue
+par défaut. Cause : soustraction de deux décimaux en virgule flottante,
+sans arrondi. Le test de la semaine 1 n'utilisait que des **entiers**, la
+seule famille de valeurs où ce bug ne peut pas apparaître.
+
+**Preuve :** sonde jetable calculant les 4 KPIs sur les 12 combinaisons
+période × segment du seed réel (4 combinaisons fautives sur 12), puis test
+`KpiCard.test.tsx` — « n'affiche jamais d'artefact de virgule flottante »
+qui échoue avant correctif (`Received: "Hausse de 0.2999999999999998
+points…"`) et passe après.
+
+**Correction :** arrondi à 1 décimale avant comparaison, format `fr-FR`.
+
+**Conclusion :** un test vert ne prouve que ce qu'il teste. Les fixtures
+doivent couvrir la *forme* des données réelles (ici : des décimaux), pas
+seulement des valeurs commodes. Vérifier le résultat d'une IA sur les
+données de production — même synthétiques — et pas uniquement sur les
+exemples qu'on a soi-même choisis.

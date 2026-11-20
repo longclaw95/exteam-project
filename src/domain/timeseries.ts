@@ -4,7 +4,6 @@
  */
 
 import { addDays, isWithinRange } from "./dates";
-import { SEGMENTS } from "./types";
 import type { DateRange, SeedData, Segment } from "./types";
 
 export interface DailyActivityPoint {
@@ -46,4 +45,3 @@ export function computeDailyActivitySeries(
   return points;
 }
 
-export { SEGMENTS };

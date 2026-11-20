@@ -109,6 +109,7 @@ for (const account of accounts) {
 }
 
 const seed = {
+  generatedFrom: firstDay,
   generatedThrough: REFERENCE_DATE,
   accounts,
   tickets,
