@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Suspense } from "react";
 
 import { AccountsTable } from "@/components/AccountsTable";
@@ -6,6 +7,7 @@ import { AppShell } from "@/components/AppShell";
 import { Feedback } from "@/components/Feedback";
 import { FilterBar } from "@/components/FilterBar";
 import { KpiCard } from "@/components/KpiCard";
+import type { KpiPolarity } from "@/components/KpiCard";
 import { computeAccountSummaries } from "@/domain/account-summaries";
 import { computePeriodRanges } from "@/domain/dates";
 import { parsePeriod, parseSegment } from "@/domain/filters";
@@ -13,6 +15,7 @@ import { computeDashboardKpis } from "@/domain/kpi";
 import { computeDailyActivitySeries } from "@/domain/timeseries";
 import seed from "@/data/seed.json";
 import type { DashboardKpis } from "@/domain/kpi";
+import { SEGMENTS } from "@/domain/types";
 import type { Period, SeedData } from "@/domain/types";
 import type { SegmentFilterValue } from "@/domain/filters";
 
@@ -31,11 +34,11 @@ function formatCsat(value: number | null): string {
   return value === null ? "n/a" : `${value.toLocaleString("fr-FR")} / 5`;
 }
 
-const SEGMENT_LABEL: Record<string, string> = {
+const SEGMENT_SCOPE_LABEL: Record<SegmentFilterValue, string> = {
   all: "tous segments",
-  enterprise: "Enterprise",
-  smb: "PME",
-  startup: "Startup",
+  enterprise: "segment Enterprise",
+  smb: "segment PME",
+  startup: "segment Startup",
 };
 
 // Config déclarative des 4 cartes KPI (cf. ADR-002, docs/adr/0002-refactor-dashboard.md) :
@@ -45,11 +48,13 @@ const KPI_CONFIG: {
   label: string;
   format: (value: number | null) => string;
   deltaUnit: "points" | "percent";
+  polarity: KpiPolarity;
 }[] = [
-  { key: "activeAccounts", label: "Comptes actifs", format: formatInteger, deltaUnit: "percent" },
-  { key: "ticketsCreated", label: "Tickets créés", format: formatInteger, deltaUnit: "percent" },
-  { key: "resolutionRate", label: "Taux de résolution", format: formatPercent, deltaUnit: "points" },
-  { key: "csat", label: "Satisfaction (CSAT)", format: formatCsat, deltaUnit: "points" },
+  { key: "activeAccounts", label: "Comptes actifs", format: formatInteger, deltaUnit: "percent", polarity: "higher-is-better" },
+  // Neutre : plus de tickets peut signifier plus d'usage autant qu'un problème (note de cadrage § 3).
+  { key: "ticketsCreated", label: "Tickets créés", format: formatInteger, deltaUnit: "percent", polarity: "neutral" },
+  { key: "resolutionRate", label: "Taux de résolution", format: formatPercent, deltaUnit: "points", polarity: "higher-is-better" },
+  { key: "csat", label: "Satisfaction (CSAT)", format: formatCsat, deltaUnit: "points", polarity: "higher-is-better" },
 ];
 
 export default function Home({ searchParams }: PageProps<"/">) {
@@ -89,12 +94,12 @@ async function Dashboard({ searchParams }: Pick<PageProps<"/">, "searchParams">)
   return (
     <>
       <FilterBar period={period} segment={segment} />
-      <a
+      <Link
         href={`/?${errorDemoParams.toString()}`}
         className="mt-2 inline-block text-xs text-[var(--color-text-muted)] underline"
       >
         Simuler une erreur de chargement (démo)
-      </a>
+      </Link>
       {/*
         Région live : annonce le résultat du filtrage aux technologies
         d'assistance. Sans ça, un changement de période/segment ne met à
@@ -102,7 +107,7 @@ async function Dashboard({ searchParams }: Pick<PageProps<"/">, "searchParams">)
         ne serait pas informé que le contenu a changé (cf. docs/05-audit-accessibilite.md).
       */}
       <p className="sr-only" aria-live="polite">
-        Période {period} jours, segment {SEGMENT_LABEL[segment]} : {accountRows.length} compte
+        Période {period} jours, {SEGMENT_SCOPE_LABEL[segment]} : {accountRows.length} compte
         {accountRows.length > 1 ? "s" : ""} affiché{accountRows.length > 1 ? "s" : ""}.
       </p>
 
@@ -111,7 +116,7 @@ async function Dashboard({ searchParams }: Pick<PageProps<"/">, "searchParams">)
           Indicateurs clés
         </h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {KPI_CONFIG.map(({ key, label, format, deltaUnit }) => {
+          {KPI_CONFIG.map(({ key, label, format, deltaUnit, polarity }) => {
             const comparison = kpis[key];
             return (
               <KpiCard
@@ -121,6 +126,7 @@ async function Dashboard({ searchParams }: Pick<PageProps<"/">, "searchParams">)
                 current={comparison.current}
                 previous={comparison.previous}
                 deltaUnit={deltaUnit}
+                polarity={polarity}
               />
             );
           })}
@@ -131,7 +137,7 @@ async function Dashboard({ searchParams }: Pick<PageProps<"/">, "searchParams">)
         <h2 className="mb-2 text-sm font-semibold text-[var(--color-text-primary)]">
           Évolution dans le temps
         </h2>
-        <ActivityChart points={activitySeries} />
+        <ActivityChart points={activitySeries} segments={segment === "all" ? SEGMENTS : [segment]} />
       </section>
 
       <section className="mt-8">
@@ -154,12 +160,12 @@ function DashboardError({ period, segment }: { period: Period; segment: SegmentF
           tone="critical"
           message="Impossible de charger les données du tableau de bord (panne simulée). Réessayez."
         />
-        <a
+        <Link
           href={`/?${retryParams.toString()}`}
           className="mt-2 inline-block text-sm text-[var(--color-series-1)] underline"
         >
           Réessayer
-        </a>
+        </Link>
       </div>
     </>
   );

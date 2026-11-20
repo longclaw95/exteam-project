@@ -8,11 +8,23 @@
  * combinaisons possibles — "éviter une abstraction prématurée").
  */
 
+import type { ReactNode } from "react";
+import Link from "next/link";
+
 import { AccountsTable } from "@/components/AccountsTable";
+import { ActivityChart } from "@/components/ActivityChart";
+import { AppShell } from "@/components/AppShell";
 import { EmptyState } from "@/components/EmptyState";
 import { Feedback } from "@/components/Feedback";
 import { KpiCard } from "@/components/KpiCard";
 import { Select } from "@/components/Select";
+
+const SAMPLE_POINTS = [
+  { date: "2026-11-01", bySegment: { enterprise: 12, smb: 7, startup: 9 } },
+  { date: "2026-11-02", bySegment: { enterprise: 14, smb: 8, startup: 8 } },
+  { date: "2026-11-03", bySegment: { enterprise: 11, smb: 10, startup: 10 } },
+  { date: "2026-11-04", bySegment: { enterprise: 13, smb: 9, startup: 9 } },
+];
 
 function Section({
   title,
@@ -23,7 +35,7 @@ function Section({
   title: string;
   props: string;
   usage: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <section className="mt-10">
@@ -37,23 +49,33 @@ function Section({
 
 export default function CataloguePage() {
   return (
-    <div className="mx-auto max-w-3xl px-6 py-8">
-      <h1 className="text-lg font-semibold text-[var(--color-text-primary)]">
-        Catalogue de composants — ProductPulse
-      </h1>
-      <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
-        Page de référence pour un développeur qui reprend le projet : chaque
-        composant, ses props essentielles et ses états limites.
-      </p>
+    <AppShell
+      title="Catalogue de composants — ProductPulse"
+      subtitle="Référence pour un développeur qui reprend le projet : chaque composant, ses props essentielles et ses états limites."
+    >
+      <Link href="/" className="text-sm text-[var(--color-series-1)] underline">
+        ← Retour au tableau de bord
+      </Link>
 
       <Section
         title="KpiCard"
-        props="label, formattedValue, current, previous, deltaUnit?"
-        usage="Affiche un indicateur et sa tendance. Gère les cas où la comparaison n'est pas possible (cf. docs/registre-ia.md)."
+        props="label, formattedValue, current, previous, deltaUnit?, polarity?"
+        usage="Affiche un indicateur et sa tendance, toujours en texte. polarity='neutral' retire la couleur de jugement (ex. tickets créés). Gère les cas où la comparaison n'est pas possible (cf. docs/registre-ia.md)."
       >
         <KpiCard label="Comptes actifs" formattedValue="128" current={128} previous={110} deltaUnit="percent" />
+        <KpiCard label="Tickets créés (polarité neutre)" formattedValue="40" current={40} previous={30} deltaUnit="percent" polarity="neutral" />
+        <KpiCard label="Satisfaction (variation décimale)" formattedValue="4,1 / 5" current={4.1} previous={3.8} deltaUnit="points" />
         <KpiCard label="Taux de résolution" formattedValue="92 %" current={92} previous={92} deltaUnit="points" />
-        <KpiCard label="Satisfaction" formattedValue="n/a" current={null} previous={null} deltaUnit="points" />
+        <KpiCard label="Satisfaction (période précédente hors données)" formattedValue="4 / 5" current={4} previous={null} deltaUnit="points" />
+      </Section>
+
+      <Section
+        title="ActivityChart"
+        props="points: DailyActivityPoint[], segments: Segment[]"
+        usage="Courbes par segment. Légende à partir de 2 séries ; échelle calculée sur les seules séries visibles ; la couleur suit le segment, pas son rang."
+      >
+        <ActivityChart points={SAMPLE_POINTS} segments={["enterprise", "smb", "startup"]} />
+        <ActivityChart points={SAMPLE_POINTS} segments={["smb"]} />
       </Section>
 
       <Section
@@ -114,6 +136,6 @@ export default function CataloguePage() {
         />
         <AccountsTable rows={[]} />
       </Section>
-    </div>
+    </AppShell>
   );
 }

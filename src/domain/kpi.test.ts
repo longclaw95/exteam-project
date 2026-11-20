@@ -14,6 +14,7 @@ const REFERENCE = "2026-11-04";
 
 function makeData(overrides: Partial<SeedData> = {}): SeedData {
   return {
+    generatedFrom: "2026-08-07",
     generatedThrough: REFERENCE,
     accounts: [],
     tickets: [],
@@ -148,5 +149,34 @@ describe("computeDashboardKpis", () => {
     expect(result.ticketsCreated).toEqual({ current: 0, previous: 0 });
     expect(result.resolutionRate).toEqual({ current: null, previous: null });
     expect(result.csat).toEqual({ current: null, previous: null });
+  });
+});
+
+describe("computeDashboardKpis — période précédente hors couverture des données", () => {
+  // Bug trouvé à l'audit pré-S4 : en vue 90 jours, la période précédente
+  // tombe avant le premier jour du jeu de données. Elle était comptée comme
+  // "0 compte actif", d'où une tendance "Nouveau par rapport à zéro" fausse.
+  it("rend previous = null (inconnu, pas zéro) quand la période précédente est hors couverture", () => {
+    const data = makeData({
+      accounts: [
+        { id: "a1", segment: "smb", createdAt: "2026-01-01", activeDates: ["2026-11-01"] },
+      ],
+    });
+    const result = computeDashboardKpis(data, REFERENCE, 90, "all");
+    expect(result.activeAccounts).toEqual({ current: 1, previous: null });
+    expect(result.ticketsCreated.previous).toBeNull();
+    expect(result.resolutionRate.previous).toBeNull();
+    expect(result.csat.previous).toBeNull();
+  });
+
+  // Frontière exacte, 30 jours : courante = 06/10→04/11, précédente = 06/09→05/10.
+  it("reste comparable quand la période précédente commence exactement au premier jour couvert", () => {
+    const data = makeData({ generatedFrom: "2026-09-06" });
+    expect(computeDashboardKpis(data, REFERENCE, 30, "all").activeAccounts.previous).toBe(0);
+  });
+
+  it("n'est plus comparable dès qu'un seul jour de la période précédente manque", () => {
+    const data = makeData({ generatedFrom: "2026-09-07" });
+    expect(computeDashboardKpis(data, REFERENCE, 30, "all").activeAccounts.previous).toBeNull();
   });
 });

@@ -35,6 +35,12 @@ export interface Ticket {
 }
 
 export interface SeedData {
+  /**
+   * Date ISO du premier jour couvert par le jeu de données. Avant cette
+   * date, l'activité n'est pas "nulle" mais inconnue : une période qui
+   * commence avant n'est pas comparable (cf. compareWithPreviousPeriod).
+   */
+  generatedFrom: string;
   /** Date ISO du dernier jour couvert par le jeu de données (= "aujourd'hui" simulé). */
   generatedThrough: string;
   accounts: Account[];
