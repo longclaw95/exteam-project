@@ -61,3 +61,9 @@ décision :
 
 Seuls le tri du tableau et les contrôles de filtre restent donc des Client
 Components — la frontière est encore plus nette que prévu.
+
+**Correction (20/11/2026) :** l'argument « poids du JSON » de la section
+« Pourquoi pas tout en CSR » a été mesuré : `seed.json` pèse 5,7 KiB gzip,
+négligeable face aux 129 KiB gzip du JS du framework. Il ne justifie pas
+le choix à cette échelle. Justification révisée et chiffrée :
+[docs/09-note-arbitrages.md](09-note-arbitrages.md).
