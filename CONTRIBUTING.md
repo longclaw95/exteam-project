@@ -37,7 +37,7 @@ docs: documenter ADR-001 sur le choix de gestion d'état
 
 ## Hooks Git (Husky)
 
-- `pre-commit` — exécute `npm run lint` puis `npm test`.
+- `pre-commit` — exécute `npm run lint`, `npm run typecheck` (types de routes Next + `tsc`) puis `npm test`. Vitest ne vérifiant pas les types, le typecheck est indispensable.
 - `commit-msg` — valide le message de commit avec commitlint (config `@commitlint/config-conventional`).
 
 Les hooks sont installés automatiquement via `npm install` (script `prepare`).
