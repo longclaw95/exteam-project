@@ -17,8 +17,7 @@ interne), et doit rester interactif (filtres, tri de tableau).
   Aucun calcul métier n'est envoyé en JavaScript au client.
 - **Client Components (CSR)** seulement là où l'interactivité l'exige :
   Select de segment, boutons de période (déclenchent une navigation), tri
-  du tableau (état local d'affichage, ne recalcule pas les KPIs), et les
-  états de chargement/erreur simulés.
+  du tableau (état local d'affichage, ne recalcule pas les KPIs).
 
 ## Pourquoi pas tout en CSR
 
@@ -37,9 +36,6 @@ interne), et doit rester interactif (filtres, tri de tableau).
 - Le tri du tableau est un comportement purement visuel, propre au
   navigateur : le refaire en aller-retour serveur à chaque clic sur un
   en-tête de colonne serait plus lent et plus complexe pour aucun gain.
-- Les états de chargement/erreur simulés ont besoin d'un comportement côté
-  client pour être démontrables (délai artificiel, bouton « simuler une
-  erreur »).
 
 ## Conséquences
 
@@ -49,3 +45,19 @@ interne), et doit rester interactif (filtres, tri de tableau).
 - Si le projet grandissait vers des données qui changent en temps réel
   (polling, websocket), cette décision serait à revoir — elle est valable
   pour des données synthétiques statiques rechargées à la navigation.
+
+## Mise à jour — 20 novembre 2026 (audit pré-semaine 4)
+
+L'implémentation a simplifié deux points prévus ci-dessus, sans changer la
+décision :
+
+- **État d'erreur simulé** : rendu côté serveur à partir du paramètre
+  d'URL `?error=1` (pas de bouton client ni de délai artificiel). Avantage :
+  l'état d'erreur est partageable par lien et testable sans navigateur.
+- **État de chargement** : c'est le fallback du `<Suspense>` de
+  `app/page.tsx`, envoyé par le serveur pendant la lecture des
+  `searchParams` (rendu partiel prérendu, « Partial Prerender » dans la
+  sortie de `next build`). Aucun code client dédié.
+
+Seuls le tri du tableau et les contrôles de filtre restent donc des Client
+Components — la frontière est encore plus nette que prévu.

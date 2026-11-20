@@ -1,4 +1,6 @@
-# Audit accessibilité — semaine 3 (23 novembre 2026)
+# Audit accessibilité — semaine 3
+
+**Réalisé le :** vendredi 20 novembre 2026 (créneau prévu au planning : lundi 23/11, travail avancé).
 
 ## Méthode
 

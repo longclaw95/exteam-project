@@ -1,6 +1,6 @@
 # ADR-002 — Refactor du composant `Dashboard` (page.tsx)
 
-**Date :** jeudi 26 novembre 2026
+**Date :** vendredi 20 novembre 2026 (créneau prévu : jeudi 26/11, travail avancé)
 **Statut :** accepté
 
 ## Contexte
