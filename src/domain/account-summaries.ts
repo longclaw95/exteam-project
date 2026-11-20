@@ -6,7 +6,7 @@
  */
 
 import { isWithinRange } from "./dates";
-import type { DateRange, SeedData, Segment } from "./types";
+import type { DateRange, SeedData, Segment, Ticket } from "./types";
 import type { SegmentFilter } from "./kpi";
 
 export interface AccountSummaryRow {
@@ -21,19 +21,37 @@ function matchesSegment(segment: Segment, filter: SegmentFilter): boolean {
   return filter === "all" || segment === filter;
 }
 
+// Regroupe les tickets par compte en un seul passage (O(tickets)), pour
+// éviter de re-scanner tous les tickets pour chaque compte (O(comptes ×
+// tickets) dans la version initiale — cf. docs/06-audit-performance.md,
+// budget "calcul des KPIs").
+function groupTicketsByAccount(tickets: Ticket[]): Map<string, Ticket[]> {
+  const byAccount = new Map<string, Ticket[]>();
+  for (const ticket of tickets) {
+    const existing = byAccount.get(ticket.accountId);
+    if (existing) {
+      existing.push(ticket);
+    } else {
+      byAccount.set(ticket.accountId, [ticket]);
+    }
+  }
+  return byAccount;
+}
+
 export function computeAccountSummaries(
   data: SeedData,
   range: DateRange,
   segment: SegmentFilter = "all",
 ): AccountSummaryRow[] {
   const rows: AccountSummaryRow[] = [];
+  const ticketsByAccount = groupTicketsByAccount(data.tickets);
 
   for (const account of data.accounts) {
     if (!matchesSegment(account.segment, segment)) continue;
 
     const activeDaysCount = account.activeDates.filter((d) => isWithinRange(d, range)).length;
-    const accountTickets = data.tickets.filter(
-      (t) => t.accountId === account.id && isWithinRange(t.createdAt, range),
+    const accountTickets = (ticketsByAccount.get(account.id) ?? []).filter((t) =>
+      isWithinRange(t.createdAt, range),
     );
     const csatNotes = accountTickets
       .map((t) => t.csat)

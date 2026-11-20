@@ -109,3 +109,50 @@ accompagnés d'une légende textuelle et de libellés en bout de ligne.
 produit un résultat conforme du premier coup — à l'inverse de l'entrée 2,
 où l'absence de contrainte explicite sur la frontière serveur/client a
 produit une erreur.
+
+## Semaine du 23 novembre 2026
+
+### Entrée 4 — Revue critique d'un refactoring IA (mercredi 25 novembre)
+
+**Objectif :** demander un refactoring de performance sur `AccountsTable`
+(le tri du tableau) et évaluer la proposition de façon critique plutôt que
+l'accepter telle quelle.
+
+**Outil :** assistant IA (Copilot-like), prompt dans l'éditeur.
+
+**Prompt résumé :** « Le tri de `AccountsTable` recalcule `sortedRows` à
+chaque rendu. Propose une optimisation avec `useMemo`. »
+
+**Proposition de l'IA (extrait) :**
+
+```tsx
+const sorted = useMemo(
+  () => [...rows].sort((a, b) => compareRows(a, b, sortKey) * (sortDir === "asc" ? 1 : -1)),
+  [rows, sortKey, sortDir],
+);
+```
+
+**Anti-pattern détecté : mémoïsation inutile.** `rows` est une prop
+recalculée côté serveur à chaque changement de filtre (`app/page.tsx` en
+reconstruit un nouveau tableau à chaque requête) : sa référence change à
+chaque rendu, donc la dépendance `[rows, ...]` de `useMemo` change aussi,
+et le cache ne sert jamais. Vérifié par une expérience jetable (2 tests
+Vitest, supprimée après usage, non committée) : avec un `rows` recréé à
+chaque rendu comme dans le vrai composant, le callback mémoïsé se
+ré-exécute à **chaque** rendu (2 appels sur 2 rendus) — alors qu'avec un
+`rows` à référence stable, `useMemo` évite bien 1 recalcul sur un rendu
+« sans rapport » (1 appel sur 2 rendus). La proposition ajoute donc un
+tableau de dépendances à maintenir pour un bénéfice nul dans notre cas, et
+un risque réel si quelqu'un oublie `sortKey`/`sortDir` dans les
+dépendances (tri figé, bug silencieux).
+
+**Décision :** proposition **rejetée**. Le tri actuel (~123 lignes max)
+est déjà sous le budget de performance mesuré (cf.
+`docs/06-audit-performance.md`, budget n°3 : 1 seul re-rendu par clic de
+tri, aucun problème de fluidité observé). Ajouter `useMemo` ici serait de
+la complexité non justifiée par un gain mesuré — exactement le type de
+proposition « techniquement séduisante mais inutile » à savoir refuser.
+
+**Conclusion :** une suggestion de l'IA peut être syntaxiquement correcte
+et pourtant inutile dans le contexte réel du composant ; seule la mesure
+(pas l'intuition) permet de trancher.

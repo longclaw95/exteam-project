@@ -12,7 +12,9 @@ import { parsePeriod, parseSegment } from "@/domain/filters";
 import { computeDashboardKpis } from "@/domain/kpi";
 import { computeDailyActivitySeries } from "@/domain/timeseries";
 import seed from "@/data/seed.json";
-import type { SeedData } from "@/domain/types";
+import type { DashboardKpis } from "@/domain/kpi";
+import type { Period, SeedData } from "@/domain/types";
+import type { SegmentFilterValue } from "@/domain/filters";
 
 const data = seed as SeedData;
 
@@ -28,6 +30,27 @@ function formatPercent(value: number | null): string {
 function formatCsat(value: number | null): string {
   return value === null ? "n/a" : `${value.toLocaleString("fr-FR")} / 5`;
 }
+
+const SEGMENT_LABEL: Record<string, string> = {
+  all: "tous segments",
+  enterprise: "Enterprise",
+  smb: "PME",
+  startup: "Startup",
+};
+
+// Config déclarative des 4 cartes KPI (cf. ADR-002, docs/adr/0002-refactor-dashboard.md) :
+// remplace 4 blocs JSX quasi identiques par une boucle sur cette liste.
+const KPI_CONFIG: {
+  key: keyof DashboardKpis;
+  label: string;
+  format: (value: number | null) => string;
+  deltaUnit: "points" | "percent";
+}[] = [
+  { key: "activeAccounts", label: "Comptes actifs", format: formatInteger, deltaUnit: "percent" },
+  { key: "ticketsCreated", label: "Tickets créés", format: formatInteger, deltaUnit: "percent" },
+  { key: "resolutionRate", label: "Taux de résolution", format: formatPercent, deltaUnit: "points" },
+  { key: "csat", label: "Satisfaction (CSAT)", format: formatCsat, deltaUnit: "points" },
+];
 
 export default function Home({ searchParams }: PageProps<"/">) {
   return (
@@ -53,24 +76,7 @@ async function Dashboard({ searchParams }: Pick<PageProps<"/">, "searchParams">)
   // source de données distante dans ce projet, donc c'est la seule façon
   // honnête de montrer l'état d'erreur sans en inventer la cause.
   if (params.error === "1") {
-    const retryParams = new URLSearchParams({ period: String(period), segment });
-    return (
-      <>
-        <FilterBar period={period} segment={segment} />
-        <div className="mt-6">
-          <Feedback
-            tone="critical"
-            message="Impossible de charger les données du tableau de bord (panne simulée). Réessayez."
-          />
-          <a
-            href={`/?${retryParams.toString()}`}
-            className="mt-2 inline-block text-sm text-[var(--color-series-1)] underline"
-          >
-            Réessayer
-          </a>
-        </div>
-      </>
-    );
+    return <DashboardError period={period} segment={segment} />;
   }
 
   const kpis = computeDashboardKpis(data, data.generatedThrough, period, segment);
@@ -89,36 +95,36 @@ async function Dashboard({ searchParams }: Pick<PageProps<"/">, "searchParams">)
       >
         Simuler une erreur de chargement (démo)
       </a>
+      {/*
+        Région live : annonce le résultat du filtrage aux technologies
+        d'assistance. Sans ça, un changement de période/segment ne met à
+        jour les chiffres qu'à l'écran — un utilisateur de lecteur d'écran
+        ne serait pas informé que le contenu a changé (cf. docs/05-audit-accessibilite.md).
+      */}
+      <p className="sr-only" aria-live="polite">
+        Période {period} jours, segment {SEGMENT_LABEL[segment]} : {accountRows.length} compte
+        {accountRows.length > 1 ? "s" : ""} affiché{accountRows.length > 1 ? "s" : ""}.
+      </p>
 
-      <section aria-label="Indicateurs clés" className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <KpiCard
-          label="Comptes actifs"
-          formattedValue={formatInteger(kpis.activeAccounts.current)}
-          current={kpis.activeAccounts.current}
-          previous={kpis.activeAccounts.previous}
-          deltaUnit="percent"
-        />
-        <KpiCard
-          label="Tickets créés"
-          formattedValue={formatInteger(kpis.ticketsCreated.current)}
-          current={kpis.ticketsCreated.current}
-          previous={kpis.ticketsCreated.previous}
-          deltaUnit="percent"
-        />
-        <KpiCard
-          label="Taux de résolution"
-          formattedValue={formatPercent(kpis.resolutionRate.current)}
-          current={kpis.resolutionRate.current}
-          previous={kpis.resolutionRate.previous}
-          deltaUnit="points"
-        />
-        <KpiCard
-          label="Satisfaction (CSAT)"
-          formattedValue={formatCsat(kpis.csat.current)}
-          current={kpis.csat.current}
-          previous={kpis.csat.previous}
-          deltaUnit="points"
-        />
+      <section className="mt-6">
+        <h2 className="mb-2 text-sm font-semibold text-[var(--color-text-primary)]">
+          Indicateurs clés
+        </h2>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {KPI_CONFIG.map(({ key, label, format, deltaUnit }) => {
+            const comparison = kpis[key];
+            return (
+              <KpiCard
+                key={key}
+                label={label}
+                formattedValue={format(comparison.current)}
+                current={comparison.current}
+                previous={comparison.previous}
+                deltaUnit={deltaUnit}
+              />
+            );
+          })}
+        </div>
       </section>
 
       <section className="mt-8">
@@ -134,6 +140,27 @@ async function Dashboard({ searchParams }: Pick<PageProps<"/">, "searchParams">)
         </h2>
         <AccountsTable rows={accountRows} />
       </section>
+    </>
+  );
+}
+
+function DashboardError({ period, segment }: { period: Period; segment: SegmentFilterValue }) {
+  const retryParams = new URLSearchParams({ period: String(period), segment });
+  return (
+    <>
+      <FilterBar period={period} segment={segment} />
+      <div className="mt-6">
+        <Feedback
+          tone="critical"
+          message="Impossible de charger les données du tableau de bord (panne simulée). Réessayez."
+        />
+        <a
+          href={`/?${retryParams.toString()}`}
+          className="mt-2 inline-block text-sm text-[var(--color-series-1)] underline"
+        >
+          Réessayer
+        </a>
+      </div>
     </>
   );
 }
