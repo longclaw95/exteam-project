@@ -30,6 +30,8 @@ const COLUMNS: { key: SortKey; label: string }[] = [
   { key: "activeDaysCount", label: "Jours actifs" },
 ];
 
+const SORT_DIR_LABEL: Record<SortDir, string> = { asc: "croissant", desc: "décroissant" };
+
 function sortValue(row: AccountSummaryRow, key: SortKey): string | number | null {
   if (key === "segment") return SEGMENT_LABEL[row.segment];
   return row[key];
@@ -78,52 +80,62 @@ export function AccountsTable({ rows }: AccountsTableProps) {
   }
 
   return (
-    <table className="w-full border-collapse text-sm">
-      <caption className="sr-only">
-        Comptes par segment, triables par colonne (actuellement {sortKey}, ordre {sortDir})
-      </caption>
-      <thead>
-        <tr className="border-b border-[var(--color-border)] text-left text-[var(--color-text-secondary)]">
-          {COLUMNS.map(({ key, label }) => (
-            <th
-              key={key}
-              scope="col"
-              className="py-2 pr-4 font-medium"
-              aria-sort={sortKey === key ? (sortDir === "asc" ? "ascending" : "descending") : "none"}
-            >
-              <button
-                type="button"
-                onClick={() => handleSort(key)}
-                className="flex items-center gap-1 hover:text-[var(--color-text-primary)]"
+    <>
+      {/*
+        Annonce le changement de tri aux technologies d'assistance : la
+        <caption> du tableau décrit sa fonction une fois, mais n'est pas
+        réannoncée quand sortKey/sortDir changent (ce n'est pas une région
+        "live", et un <table> ne peut avoir qu'une seule <caption>). Ce
+        paragraphe séparé porte la même information au moment où elle change.
+      */}
+      <p className="sr-only" aria-live="polite">
+        Trié par {COLUMNS.find((c) => c.key === sortKey)?.label}, ordre {SORT_DIR_LABEL[sortDir]}.
+      </p>
+      <table className="w-full border-collapse text-sm">
+        <caption className="sr-only">Comptes par segment, triables par colonne.</caption>
+        <thead>
+          <tr className="border-b border-[var(--color-border)] text-left text-[var(--color-text-secondary)]">
+            {COLUMNS.map(({ key, label }) => (
+              <th
+                key={key}
+                scope="col"
+                className="py-2 pr-4 font-medium"
+                aria-sort={sortKey === key ? (sortDir === "asc" ? "ascending" : "descending") : "none"}
               >
-                {label}
-                <span aria-hidden="true">
-                  {sortKey === key ? (sortDir === "asc" ? "▲" : "▼") : ""}
-                </span>
-              </button>
-            </th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        {sortedRows.map((row) => (
-          <tr key={row.accountId} className="border-b border-[var(--color-border)] last:border-0">
-            <td className="py-2 pr-4 text-[var(--color-text-primary)]">{row.accountId}</td>
-            <td className="py-2 pr-4 text-[var(--color-text-secondary)]">
-              {SEGMENT_LABEL[row.segment]}
-            </td>
-            <td className="py-2 pr-4 tabular-nums text-[var(--color-text-primary)]">
-              {row.ticketsCount}
-            </td>
-            <td className="py-2 pr-4 tabular-nums text-[var(--color-text-primary)]">
-              {row.averageCsat === null ? "n/a" : `${row.averageCsat} / 5`}
-            </td>
-            <td className="py-2 tabular-nums text-[var(--color-text-primary)]">
-              {row.activeDaysCount}
-            </td>
+                <button
+                  type="button"
+                  onClick={() => handleSort(key)}
+                  className="flex items-center gap-1 hover:text-[var(--color-text-primary)]"
+                >
+                  {label}
+                  <span aria-hidden="true">
+                    {sortKey === key ? (sortDir === "asc" ? "▲" : "▼") : ""}
+                  </span>
+                </button>
+              </th>
+            ))}
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {sortedRows.map((row) => (
+            <tr key={row.accountId} className="border-b border-[var(--color-border)] last:border-0">
+              <td className="py-2 pr-4 text-[var(--color-text-primary)]">{row.accountId}</td>
+              <td className="py-2 pr-4 text-[var(--color-text-secondary)]">
+                {SEGMENT_LABEL[row.segment]}
+              </td>
+              <td className="py-2 pr-4 tabular-nums text-[var(--color-text-primary)]">
+                {row.ticketsCount}
+              </td>
+              <td className="py-2 pr-4 tabular-nums text-[var(--color-text-primary)]">
+                {row.averageCsat === null ? "n/a" : `${row.averageCsat} / 5`}
+              </td>
+              <td className="py-2 tabular-nums text-[var(--color-text-primary)]">
+                {row.activeDaysCount}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </>
   );
 }
