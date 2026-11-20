@@ -1,6 +1,6 @@
 {
   "name": "exteam-project",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -8,8 +8,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "recette": "node scripts/recette.mjs",
     "prepare": "husky"
   },
   "dependencies": {
