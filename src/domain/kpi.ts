@@ -11,7 +11,7 @@ import type { Account, DateRange, Period, Segment, SeedData, Ticket } from "./ty
 
 export type SegmentFilter = Segment | "all";
 
-function matchesSegment(segment: Segment, filter: SegmentFilter): boolean {
+export function matchesSegment(segment: Segment, filter: SegmentFilter): boolean {
   return filter === "all" || segment === filter;
 }
 
@@ -30,7 +30,12 @@ function accountsInRange(
   return active;
 }
 
-function ticketsInRange(tickets: Ticket[], range: DateRange, segment: SegmentFilter): Ticket[] {
+/** Tickets créés sur la période, pour le segment demandé. Brique de base des KPIs "tickets". */
+export function ticketsInRange(
+  tickets: Ticket[],
+  range: DateRange,
+  segment: SegmentFilter,
+): Ticket[] {
   return tickets.filter(
     (t) => matchesSegment(t.segment, segment) && isWithinRange(t.createdAt, range),
   );

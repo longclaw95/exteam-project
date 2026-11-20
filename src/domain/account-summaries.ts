@@ -1,12 +1,12 @@
 /**
- * Lignes du tableau "Comptes par segment" (cf. maquette filaire).
- * Le tri interactif arrive semaine 2 — ici on retourne un ordre par
- * défaut stable (nombre de tickets décroissant), pour que le tableau soit
- * déjà exploitable sans attendre le tri.
+ * Lignes du tableau "Comptes par segment" (cf. maquette filaire), dans un
+ * ordre par défaut stable (nombre de tickets décroissant). Le tri interactif
+ * est un état d'affichage géré par AccountsTable, pas par le domaine.
  */
 
 import { isWithinRange } from "./dates";
 import type { DateRange, SeedData, Segment, Ticket } from "./types";
+import { matchesSegment } from "./kpi";
 import type { SegmentFilter } from "./kpi";
 
 export interface AccountSummaryRow {
@@ -15,10 +15,6 @@ export interface AccountSummaryRow {
   ticketsCount: number;
   averageCsat: number | null;
   activeDaysCount: number;
-}
-
-function matchesSegment(segment: Segment, filter: SegmentFilter): boolean {
-  return filter === "all" || segment === filter;
 }
 
 // Regroupe les tickets par compte en un seul passage (O(tickets)), pour
