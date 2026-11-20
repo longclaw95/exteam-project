@@ -21,7 +21,7 @@ synthétique déterministe (régénérable avec
 
 ```bash
 npm run lint   # 0 erreur, 0 warning
-npm test       # tests unitaires (Vitest)
+npm test       # tests unitaires (Vitest) — 47 tests, dont les budgets de performance (docs/06-audit-performance.md)
 npm run build  # build de production
 ```
 
@@ -43,6 +43,9 @@ docs/
   02-decision-ssr-csr.md       choix de rendu
   03-maquette-filaire.md       disposition de l'écran
   04-design-system.md          tokens et composants
+  05-audit-accessibilite.md    audit S3 : 5 observations, 3 corrigées
+  06-audit-performance.md      3 budgets mesurés, 1 optimisation chiffrée
+  adr/0002-...                 refactor du composant Dashboard
   registre-ia.md               usages de l'IA, avec erreurs repérées et corrigées
 ```
 
@@ -52,6 +55,7 @@ docs/
 - ✅ Mini design system (5 composants), graphique d'évolution et tableau des comptes.
 - ✅ Filtres période/segment interactifs et synchronisés via l'URL, tableau triable au clic sur les en-têtes (cf. [ADR-001](docs/adr/0001-gestion-etat-filtres.md)).
 - ✅ États vide / chargement / erreur simulée (`?error=1`), catalogue local de composants ([/catalogue](src/app/catalogue/page.tsx)).
+- ✅ Audit accessibilité (3 correctifs sur 5 observations) et performance (3 budgets mesurés, 1 optimisation ×25 chiffrée) — cf. [docs/05](docs/05-audit-accessibilite.md) et [docs/06](docs/06-audit-performance.md).
 - 🔜 Export des données filtrées, formulaire de connexion (hors périmètre pédagogique actuel).
 
 ## Stack
