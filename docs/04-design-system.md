@@ -27,14 +27,17 @@ complexité non justifiée.
 | Composant | Rôle | Notes accessibilité |
 |---|---|---|
 | [AppShell](../src/components/AppShell.tsx) | Ossature de page (en-tête + contenu) | Titre en `<h1>` unique par page |
-| [KpiCard](../src/components/KpiCard.tsx) | Carte indicateur + tendance | Tendance toujours en texte, jamais seulement par couleur (cf. docs/registre-ia.md) |
+| [KpiCard](../src/components/KpiCard.tsx) | Carte indicateur + tendance ; `polarity="neutral"` pour un indicateur dont la hausse n'est ni bonne ni mauvaise | Tendance toujours en texte, jamais seulement par couleur (cf. docs/registre-ia.md) ; texte « pas de comparaison » à 4,8:1 de contraste |
 | [Select](../src/components/Select.tsx) | Sélecteur de segment | `<select>` natif + `<label>` explicite → navigation clavier native |
 | [EmptyState](../src/components/EmptyState.tsx) | État vide d'un bloc | `role="status"`, annoncé par un lecteur d'écran |
 | [Feedback](../src/components/Feedback.tsx) | Bandeau d'information/erreur | `role="alert"` pour critique, icône + texte, jamais couleur seule |
 
 Composants d'assemblage (pas dans les 5 ci-dessus, construits avec eux) :
-`ActivityChart` (graphique) et `AccountsTable` (tableau), tous deux
-réutilisent `EmptyState` et les tokens de couleur.
+`ActivityChart` (graphique : trace les seuls segments filtrés, libellés
+directs sans chevauchement, légende à partir de 2 séries) et
+`AccountsTable` (tableau triable, qui réutilise `EmptyState` quand il n'a
+aucune ligne). Tous deux utilisent les tokens de couleur. `FilterBar`
+regroupe les filtres et écrit dans l'URL.
 
 ## Navigation clavier de base — vérifiée
 

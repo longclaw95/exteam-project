@@ -184,3 +184,20 @@ doivent couvrir la *forme* des données réelles (ici : des décimaux), pas
 seulement des valeurs commodes. Vérifier le résultat d'une IA sur les
 données de production — même synthétiques — et pas uniquement sur les
 exemples qu'on a soi-même choisis.
+
+## Bilan du mois (20 novembre 2026, livraison v1.0)
+
+| # | Usage | Verdict | Ce qui l'a démontré |
+|---|---|---|---|
+| 1 | Composant `KpiCard` | Rejeté puis réécrit (division par zéro, couleur seule) | Test `previous = 0` |
+| 2 | Composant `Select` | Corrigé (`"use client"` manquant) | Build en échec |
+| 3 | Graphique `ActivityChart` | Accepté (prompt contraint) | Relecture + tokens validés |
+| 4 | `useMemo` sur le tri | Rejeté (inutile ici) | Expérience mesurée |
+| 5 | Correctif de l'entrée 1 | Second bug caché (flottant) | Données réelles, pas fixtures |
+
+Ce que je retiens : l'IA produit vite du code **plausible** ; ce qui l'a
+rendu **juste** à chaque fois, c'est une preuve extérieure à l'IA — un
+test sur des valeurs réalistes, un build, une mesure, ou une installation
+vierge. Les défauts des entrées 2 et 5 n'ont été vus qu'en **exécutant**
+(build, données réelles) : la relecture du code ne les avait pas
+signalés.
