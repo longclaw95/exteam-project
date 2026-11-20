@@ -36,7 +36,7 @@ src/
   domain/        calcul des KPIs, dates, séries temporelles, filtres — pur, sans React
   components/    KpiCard, AppShell, Select, EmptyState, Feedback, ActivityChart, AccountsTable, FilterBar
   data/          seed.json (généré par scripts/generate-seed.mjs)
-  app/           page Next.js (App Router)
+  app/           page Next.js (App Router), + /catalogue (catalogue de composants)
 docs/
   01-note-de-cadrage.md        besoin métier, personas, définitions des 4 KPIs
   adr/0001-...                 décisions d'architecture (ADR)
@@ -51,6 +51,7 @@ docs/
 - ✅ 4 KPIs calculés sur un jeu de données synthétique réel, avec comparaison à la période précédente.
 - ✅ Mini design system (5 composants), graphique d'évolution et tableau des comptes.
 - ✅ Filtres période/segment interactifs et synchronisés via l'URL, tableau triable au clic sur les en-têtes (cf. [ADR-001](docs/adr/0001-gestion-etat-filtres.md)).
+- ✅ États vide / chargement / erreur simulée (`?error=1`), catalogue local de composants ([/catalogue](src/app/catalogue/page.tsx)).
 - 🔜 Export des données filtrées, formulaire de connexion (hors périmètre pédagogique actuel).
 
 ## Stack

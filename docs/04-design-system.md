@@ -40,13 +40,29 @@ réutilisent `EmptyState` et les tokens de couleur.
 
 - `Select` : focus au clavier, changement de valeur avec les flèches,
   testé dans `Select.test.tsx` (`select.focus()` + `userEvent.selectOptions`).
-- Les boutons de période et le select de segment sont actuellement
-  désactivés (`disabled`) : ils sont visuellement présents pour cadrer
-  l'écran final, mais pas encore branchés — on ne veut pas donner
-  l'impression qu'ils fonctionnent avant le câblage réel (semaine 2).
+- Boutons de période et select de segment (`FilterBar`) : branchés depuis la
+  semaine 2 sur l'URL (cf. ADR-001), activables au clavier comme tout
+  `<button>`/`<select>` natif.
+- En-têtes de colonnes triables (`AccountsTable`) : chaque en-tête est un
+  `<button>` natif (focus + activation clavier gratuits), avec
+  `aria-sort` posé sur le `<th>` parent.
 
-## Limite assumée
+## États vide / chargement / erreur
 
-Pas de Storybook à ce stade (prévu semaine 2, en option). Le "catalogue"
-pour l'instant, c'est ce document + les tests de chaque composant, qui
-montrent leurs cas d'usage et leurs props.
+- **Vide** : `EmptyState`, utilisé par `AccountsTable` quand le filtre ne
+  retourne aucune ligne.
+- **Chargement** : le fallback du `<Suspense>` dans `app/page.tsx` (texte
+  "Chargement…"), affiché pendant la résolution de `searchParams` sous
+  Cache Components.
+- **Erreur (simulée)** : `?error=1` sur le tableau de bord affiche un
+  `Feedback` de tonalité `critical` + un lien "Réessayer" — le projet n'a
+  pas de vraie source de données distante pouvant échouer, donc c'est
+  délibérément un paramètre de démo plutôt qu'une panne inventée en dur.
+
+## Catalogue de composants
+
+Page locale : [/catalogue](../src/app/catalogue/page.tsx) — pas de
+Storybook (non justifié pour 7 composants sur un projet de cette taille,
+cf. "pas de surenchère technique"). Montre les variations utiles de
+chaque composant (props, cas limites) pour qu'un développeur qui reprend
+le projet voie les états sans relancer le dashboard complet.

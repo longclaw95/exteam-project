@@ -48,14 +48,47 @@ async function Dashboard({ searchParams }: Pick<PageProps<"/">, "searchParams">)
   const period = parsePeriod(params.period);
   const segment = parseSegment(params.segment);
 
+  // `error=1` simule une panne de chargement (ex. API indisponible), demandée
+  // par le brief ("états vide/chargement/erreur simulés"). Pas de vraie
+  // source de données distante dans ce projet, donc c'est la seule façon
+  // honnête de montrer l'état d'erreur sans en inventer la cause.
+  if (params.error === "1") {
+    const retryParams = new URLSearchParams({ period: String(period), segment });
+    return (
+      <>
+        <FilterBar period={period} segment={segment} />
+        <div className="mt-6">
+          <Feedback
+            tone="critical"
+            message="Impossible de charger les données du tableau de bord (panne simulée). Réessayez."
+          />
+          <a
+            href={`/?${retryParams.toString()}`}
+            className="mt-2 inline-block text-sm text-[var(--color-series-1)] underline"
+          >
+            Réessayer
+          </a>
+        </div>
+      </>
+    );
+  }
+
   const kpis = computeDashboardKpis(data, data.generatedThrough, period, segment);
   const { current } = computePeriodRanges(data.generatedThrough, period);
   const activitySeries = computeDailyActivitySeries(data, current);
   const accountRows = computeAccountSummaries(data, current, segment);
 
+  const errorDemoParams = new URLSearchParams({ period: String(period), segment, error: "1" });
+
   return (
     <>
       <FilterBar period={period} segment={segment} />
+      <a
+        href={`/?${errorDemoParams.toString()}`}
+        className="mt-2 inline-block text-xs text-[var(--color-text-muted)] underline"
+      >
+        Simuler une erreur de chargement (démo)
+      </a>
 
       <section aria-label="Indicateurs clés" className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <KpiCard
