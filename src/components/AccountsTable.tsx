@@ -32,6 +32,9 @@ const COLUMNS: { key: SortKey; label: string }[] = [
 
 const SORT_DIR_LABEL: Record<SortDir, string> = { asc: "croissant", desc: "décroissant" };
 
+// Même format que les cartes KPI : virgule décimale française.
+const formatCsat = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 });
+
 function sortValue(row: AccountSummaryRow, key: SortKey): string | number | null {
   if (key === "segment") return SEGMENT_LABEL[row.segment];
   return row[key];
@@ -127,7 +130,7 @@ export function AccountsTable({ rows }: AccountsTableProps) {
                 {row.ticketsCount}
               </td>
               <td className="py-2 pr-4 tabular-nums text-[var(--color-text-primary)]">
-                {row.averageCsat === null ? "n/a" : `${row.averageCsat} / 5`}
+                {row.averageCsat === null ? "n/a" : `${formatCsat.format(row.averageCsat)} / 5`}
               </td>
               <td className="py-2 tabular-nums text-[var(--color-text-primary)]">
                 {row.activeDaysCount}

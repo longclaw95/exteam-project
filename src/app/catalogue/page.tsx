@@ -126,7 +126,7 @@ export default function CataloguePage() {
       <Section
         title="AccountsTable"
         props="rows: AccountSummaryRow[]"
-        usage="Tableau triable au clic sur un en-tête (état local). Affiche EmptyState si rows est vide, 'n/a' (jamais NaN) si la CSAT est absente."
+        usage="Tableau triable au clic sur un en-tête (état local). Affiche EmptyState si rows est vide, et « n/a » (jamais une valeur technique) si la CSAT est absente."
       >
         <AccountsTable
           rows={[
