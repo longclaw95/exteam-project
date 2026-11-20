@@ -32,7 +32,8 @@ describe("AccountsTable", () => {
       />,
     );
     expect(screen.getByText("a1")).toBeInTheDocument();
-    expect(screen.getByText("4.5 / 5")).toBeInTheDocument();
+    // Même format que les cartes KPI (« 4,1 / 5 ») — anomalie trouvée en recette.
+    expect(screen.getByText("4,5 / 5")).toBeInTheDocument();
   });
 
   it("trie par colonne au clic sur l'en-tête, dans les deux sens", async () => {
